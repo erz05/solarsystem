@@ -221,18 +221,18 @@
         lastMouseY = newY;
     }
 
-    var moonVertexPositionBuffer;
-    var moonVertexIndexBuffer;
-    var moonVertexNormalBuffer;
+    var spherePosition = [];
+    var sphereIndex = [];
     var circles = [];
-
-    function initBuffers() {
-        var latitudeBands = 20;
-        var longitudeBands = 20;
-        var radius = .5;
+    
+    function initSphere(radius) {
+        var vertexPositionBuffer;
+        var vertexIndexBuffer;
+        
+        var latitudeBands = 12;
+        var longitudeBands = 12;
 
         var vertexPositionData = [];
-        var normalData = [];
 
         for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
             var theta = latNumber * Math.PI / latitudeBands;
@@ -250,9 +250,6 @@
                 var u = 1 - (longNumber / longitudeBands);
                 var v = 1 - (latNumber / latitudeBands);
 
-                normalData.push(x);
-                normalData.push(y);
-                normalData.push(z);
                 vertexPositionData.push(radius * x);
                 vertexPositionData.push(radius * y);
                 vertexPositionData.push(radius * z);
@@ -274,152 +271,20 @@
             }
         }
 
-        moonVertexNormalBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, moonVertexNormalBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalData), gl.STATIC_DRAW);
-        moonVertexNormalBuffer.itemSize = 3;
-        moonVertexNormalBuffer.numItems = normalData.length / 3;
-
-        moonVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, moonVertexPositionBuffer);
+        vertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositionData), gl.STATIC_DRAW);
-        moonVertexPositionBuffer.itemSize = 3;
-        moonVertexPositionBuffer.numItems = vertexPositionData.length / 3;
+        vertexPositionBuffer.itemSize = 3;
+        vertexPositionBuffer.numItems = vertexPositionData.length / 3;
 
-        moonVertexIndexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, moonVertexIndexBuffer);
+        vertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
-        moonVertexIndexBuffer.itemSize = 1;
-        moonVertexIndexBuffer.numItems = indexData.length;
+        vertexIndexBuffer.itemSize = 1;
+        vertexIndexBuffer.numItems = indexData.length;
 
-        var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
-        for(var i=0; i<9; i++){
-            circles.push(initCircle(radiuses[i]));
-        }
-    }
-
-    function degToRad(degrees) {
-        return degrees * Math.PI / 180;
-    }
-
-    var rS = 0;
-    var rT = -2;
-    var rZ = 0;
-    var rAngle = 0;
-
-    function drawScene() {
-        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-
-        mat4.identity(mvMatrix);
-
-        mat4.translate(mvMatrix, [0.0, 0.0, zoom]);
-        mat4.multiply(mvMatrix, moonRotationMatrix);
-        mat4.rotate(mvMatrix, degToRad(30), [1, 0, 0]);
-        
-        mvPushMatrix();
-
-        mat4.rotate(mvMatrix, degToRad(rAngle), [0,1,0]);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, moonVertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, moonVertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, moonVertexNormalBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, moonVertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, moonVertexIndexBuffer);
-        setMatrixUniforms();
-        gl.drawElements(gl.LINE_STRIP, moonVertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-        
-        mvPopMatrix();
-    
-        //mercury
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rS), [0,1,0]);
-        mat4.translate(mvMatrix, [-1, 0.0, 0.0]);
-        drawSphere(.05);
-        
-        mvPopMatrix();
-
-        //venus
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle), [0,1,0]);
-        mat4.translate(mvMatrix, [-2, 0.0, 0.0]);
-        drawSphere(.1);
-
-        mvPopMatrix();
-
-        //moon
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle), [0,1,0]);
-        mat4.translate(mvMatrix, [-3, 0.0, 0.0]);
-        mat4.rotate(mvMatrix, degToRad(rS), [0,1,0]);
-        mat4.translate(mvMatrix, [.3, 0.0, 0.0]);
-        drawSphere(.05)
-        
-        mvPopMatrix();
-
-        //earth
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-3, 0.0, 0.0]);
-        drawSphere(.09);
-
-        mvPopMatrix();
-
-        //mars
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-4, 0.0, 0.0]);
-        drawSphere(.08);
-
-        mvPopMatrix();
-
-        //jupiter
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-5, 0.0, 0.0]);
-        drawSphere(.3);
-
-        mvPopMatrix();
-
-        //saturn
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-6, 0.0, 0.0]);
-        drawSphere(.2);
-
-        mvPopMatrix();
-
-        //uranus
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-7, 0.0, 0.0]);
-        drawSphere(.1);
-
-        mvPopMatrix();
-
-        //neptune
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-8, 0.0, 0.0]);
-        drawSphere(.1);
-
-        mvPopMatrix();
-
-        //pluto
-        mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle - 1), [0,1,0]);
-        mat4.translate(mvMatrix, [-9, 0.0, 0.0]);
-        drawSphere(.05);
-
-        mvPopMatrix();
-
-        for(var i=0; i<9; i++){
-            drawCircle(circles[i]);
-        }
+        spherePosition.push(vertexPositionBuffer);
+        sphereIndex.push(vertexIndexBuffer);
     }
 
     function initCircle(radius) {
@@ -444,10 +309,49 @@
         circleBuffer.numItems = positionData.length/3;
 
 
-        return circleBuffer;
+        circles.push(circleBuffer);
     }
 
-    function drawCircle(circleBuffer) {  
+    function initBuffers() {
+        var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
+        for(var i=0; i<9; i++){
+            initCircle(radiuses[i]);
+        }
+
+        var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
+        for(var i=0; i<10; i++){
+            initSphere(sizes[i]);
+        }
+
+    }
+
+    function degToRad(degrees) {
+        return degrees * Math.PI / 180;
+    }
+
+    var rS = 0;
+    var rT = -2;
+    var rZ = 0;
+    var rAngle = 0;
+
+    var locations =[0, -1, -2, -3, -4, -5, -6, -7, -8, -9];
+    function drawSphere(i){
+        mvPushMatrix();
+        mat4.rotate(mvMatrix, degToRad(rAngle), [0,1,0]);
+        mat4.translate(mvMatrix, [locations[i], 0.0, 0.0]);
+        var vertexPositionBuffer = spherePosition[i];
+        var vertexIndexBuffer = sphereIndex[i];
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+        setMatrixUniforms();
+        gl.drawElements(gl.LINE_STRIP, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrix();
+    }
+
+    function drawCircle(i) {  
+        var circleBuffer = circles[i];
         mvPushMatrix();
         gl.bindBuffer(gl.ARRAY_BUFFER, circleBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, circleBuffer.itemSize, gl.FLOAT, false, 0, 0);
@@ -456,84 +360,24 @@
         mvPopMatrix();
     }
 
-    function drawSphere(radius) {
-        var vertexPositionBuffer;
-        var vertexIndexBuffer;
-        //var vertexNormalBuffer;
+    function drawScene() {
+        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+
+        mat4.identity(mvMatrix);
+
+        mat4.translate(mvMatrix, [0.0, 0.0, zoom]);
+        mat4.multiply(mvMatrix, moonRotationMatrix);
         
-        var latitudeBands = 12;
-        var longitudeBands = 12;
-
-        var vertexPositionData = [];
-        //var normalData = [];
-
-        for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
-            var theta = latNumber * Math.PI / latitudeBands;
-            var sinTheta = Math.sin(theta);
-            var cosTheta = Math.cos(theta);
-
-            for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
-                var phi = longNumber * 2 * Math.PI / longitudeBands;
-                var sinPhi = Math.sin(phi);
-                var cosPhi = Math.cos(phi);
-
-                var x = cosPhi * sinTheta;
-                var y = cosTheta;
-                var z = sinPhi * sinTheta;
-                var u = 1 - (longNumber / longitudeBands);
-                var v = 1 - (latNumber / latitudeBands);
-
-                //normalData.push(x);
-                //normalData.push(y);
-                //normalData.push(z);
-                vertexPositionData.push(radius * x);
-                vertexPositionData.push(radius * y);
-                vertexPositionData.push(radius * z);
-            }
+        for(var i=0; i<10; i++){
+            drawSphere(i);
         }
 
-        var indexData = [];
-        for (var latNumber=0; latNumber < latitudeBands; latNumber++) {
-            for (var longNumber=0; longNumber < longitudeBands; longNumber++) {
-                var first = (latNumber * (longitudeBands + 1)) + longNumber;
-                var second = first + longitudeBands + 1;
-                indexData.push(first);
-                indexData.push(second);
-                indexData.push(first + 1);
-
-                indexData.push(second);
-                indexData.push(second + 1);
-                indexData.push(first + 1);
-            }
+        for(var i=0; i<9; i++){
+            drawCircle(i);
         }
-
-        //vertexNormalBuffer = gl.createBuffer();
-        //gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-        //gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normalData), gl.STATIC_DRAW);
-        //vertexNormalBuffer.itemSize = 3;
-        //vertexNormalBuffer.numItems = normalData.length / 3;
-
-        vertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositionData), gl.STATIC_DRAW);
-        vertexPositionBuffer.itemSize = 3;
-        vertexPositionBuffer.numItems = vertexPositionData.length / 3;
-
-        vertexIndexBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
-        vertexIndexBuffer.itemSize = 1;
-        vertexIndexBuffer.numItems = indexData.length;
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        // gl.bindBuffer(gl.ARRAY_BUFFER, vertexNormalBuffer);
-        // gl.vertexAttribPointer(shaderProgram.vertexNormalAttribute, vertexNormalBuffer.itemSize, gl.FLOAT, false, 0, 0);
-
-        //gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
-        setMatrixUniforms();
-        gl.drawElements(gl.LINE_STRIP, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
     }
 
     var lastTime = 0;
