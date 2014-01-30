@@ -29,15 +29,13 @@
     }
 </script>
 
-
 <script type="text/javascript">
 
     var gl;
-    function initGL(canvas) {
+    var canvas;
+    function initGL() {
         try {
             gl = canvas.getContext("experimental-webgl");
-            gl.viewportWidth = canvas.width;
-            gl.viewportHeight = canvas.height;
         } catch (e) {
         }
         if (!gl) {
@@ -45,6 +43,13 @@
         }
     }
 
+    function resizeCanvas() {
+        if (canvas.width != canvas.clientWidth || canvas.height != canvas.clientHeight) {
+
+            canvas.width = canvas.clientWidth;
+            canvas.height = canvas.clientHeight;
+        }
+    }
 
     function getShader(gl, id) {
         var shaderScript = document.getElementById(id);
@@ -154,13 +159,9 @@
         currentlyPressedKeys[event.keyCode] = false;
     }
 
-
     var zoom = -25;
-
-
     var tilt = 90;
     var spin = 0;
-
 
     function handleKeys() {
         if (currentlyPressedKeys[33]) {
@@ -361,10 +362,11 @@
     }
 
     function drawScene() {
-        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
+        gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
+        var aspect = canvas.width/canvas.height;
+        mat4.perspective(50, aspect, 0.1, 100.0, pMatrix);
 
         mat4.identity(mvMatrix);
 
@@ -421,8 +423,9 @@
     }
 
     function webGLStart() {
-        var canvas = document.getElementById("lesson01-canvas");
-        initGL(canvas);
+        canvas = document.getElementById("canvas");
+        initGL();
+        resizeCanvas();
         initShaders();
         initBuffers();
 
@@ -437,14 +440,29 @@
         document.onmousemove = handleMouseMove;
 
         tick();
+
+        window.addEventListener('resize', drawScene);
     }
 
 
 </script>
 
+<style>
+      body, html { 
+        width: 100%;
+        height: 100%;
+        border: 0px;
+        padding: 0px;
+        margin: 0px;
+      }
+      #canvas {
+        width: 100%;
+        height: 100%;
+      }
+</style>
 
 </head>
     <body onload="webGLStart();">
-        <canvas id="lesson01-canvas" style="border: none;" width="700" height="700"></canvas>
+        <canvas id="canvas"></canvas>
     </body>
 </html>
