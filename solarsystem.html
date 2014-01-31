@@ -230,8 +230,8 @@
         var vertexPositionBuffer;
         var vertexIndexBuffer;
         
-        var latitudeBands = 12;
-        var longitudeBands = 12;
+        var latitudeBands = 20;
+        var longitudeBands = 20;
 
         var vertexPositionData = [];
 
@@ -291,7 +291,7 @@
     function initCircle(radius) {
         var circleBuffer;
         var positionData = [];
-        var numSegments = 40;
+        var numSegments = 100;
         for(var i=0; i<numSegments; i++){
             var theta = 2.0 * 3.1415926 * i / numSegments;
             var x = radius * Math.cos(theta);
@@ -347,7 +347,7 @@
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
         setMatrixUniforms();
-        gl.drawElements(gl.LINE_STRIP, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLE_STRIP, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         mvPopMatrix();
     }
 
@@ -441,7 +441,7 @@
 
         tick();
 
-        window.addEventListener('resize', drawScene);
+        window.addEventListener('resize', resizeCanvas);
     }
 
 
