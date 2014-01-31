@@ -11,6 +11,8 @@
 <script id="shader-fs" type="x-shader/x-fragment">
     precision mediump float;
 
+    varying vec4 vColor;
+
     void main(void) {
         gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
     }
@@ -18,11 +20,9 @@
 
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
-    attribute vec3 aVertexNormal;
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
-    uniform mat3 uNMatrix;
 
     void main(void) {
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
@@ -107,13 +107,8 @@
         shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
         gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
 
-        shaderProgram.vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");
-        gl.enableVertexAttribArray(shaderProgram.vertexNormalAttribute);
-
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
-
-        shaderProgram.nMatrixUniform = gl.getUniformLocation(shaderProgram, "uNMatrix");
     }
 
 
@@ -137,11 +132,6 @@
     function setMatrixUniforms() {
         gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
         gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
-
-        var normalMatrix = mat3.create();
-        mat4.toInverseMat3(mvMatrix, normalMatrix);
-        mat3.transpose(normalMatrix);
-        gl.uniformMatrix3fv(shaderProgram.nMatrixUniform, false, normalMatrix);
     }
 
     function degToRad(degrees) {
