@@ -28,6 +28,7 @@
     varying vec4 vColor;
 
     void main(void) {
+        gl_PointSize = 1.;
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
 
         vColor = aVertexColor;
@@ -331,6 +332,33 @@
         circles.push(circleBuffer);
     }
 
+    var starPositionBuffer;
+    var starColorBuffer;
+    function initStars() {
+        starPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, starPositionBuffer);
+        var vertices = [];
+        var colors = [];
+        for(var i=0; i<400; i++){
+            vertices.push((Math.random()*40)-20);
+            vertices.push((Math.random()*40)-20);
+            vertices.push(-20);
+            colors.push(1);
+            colors.push(1);
+            colors.push(1);
+            colors.push(1);
+        }
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+        starPositionBuffer.itemSize = 3;
+        starPositionBuffer.numItems = vertices.length/3;
+
+        starColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, starColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        starColorBuffer.itemSize = 4;
+        starColorBuffer.numItems = colors.length / 4;
+    }
+
     var circleColorBuffer;
     function initBuffers() {
         var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -356,6 +384,8 @@
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circleColors), gl.STATIC_DRAW);
         circleColorBuffer.itemSize = 4;
         circleColorBuffer.numItems = circleColors.length / 4;
+
+        initStars();
     }
 
     function degToRad(degrees) {
@@ -403,6 +433,19 @@
         mvPopMatrix();
     }
 
+    function drawStars(){
+        mvPushMatrix();
+        gl.bindBuffer(gl.ARRAY_BUFFER, starPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, starPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, starColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, starColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        setMatrixUniforms();
+        gl.drawArrays(gl.POINTS, 0, starPositionBuffer.numItems);
+        mvPopMatrix();
+    }
+
     function drawScene() {
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -422,6 +465,8 @@
         for(var i=0; i<9; i++){
             drawCircle(i);
         }
+
+        drawStars();
     }
 
     var lastTime = 0;
