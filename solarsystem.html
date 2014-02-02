@@ -14,18 +14,23 @@
     varying vec4 vColor;
 
     void main(void) {
-        gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        gl_FragColor = vColor;
     }
 </script>
 
 <script id="shader-vs" type="x-shader/x-vertex">
     attribute vec3 aVertexPosition;
+    attribute vec4 aVertexColor;
 
     uniform mat4 uMVMatrix;
     uniform mat4 uPMatrix;
 
+    varying vec4 vColor;
+
     void main(void) {
         gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+
+        vColor = aVertexColor;
     }
 </script>
 
@@ -106,6 +111,9 @@
 
         shaderProgram.vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
         gl.enableVertexAttribArray(shaderProgram.vertexPositionAttribute);
+
+        shaderProgram.vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+        gl.enableVertexAttribArray(shaderProgram.vertexColorAttribute);
 
         shaderProgram.pMatrixUniform = gl.getUniformLocation(shaderProgram, "uPMatrix");
         shaderProgram.mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
@@ -214,16 +222,19 @@
 
     var spherePosition = [];
     var sphereIndex = [];
+    var sphereColor = [];
     var circles = [];
     
     function initSphere(radius) {
         var vertexPositionBuffer;
         var vertexIndexBuffer;
+        var vertexColorBuffer;
         
         var latitudeBands = 20;
         var longitudeBands = 20;
 
         var vertexPositionData = [];
+        var colors = [];
 
         for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
             var theta = latNumber * Math.PI / latitudeBands;
@@ -244,6 +255,11 @@
                 vertexPositionData.push(radius * x);
                 vertexPositionData.push(radius * y);
                 vertexPositionData.push(radius * z);
+
+                colors.push(1);
+                colors.push(0);
+                colors.push(0);
+                colors.push(1);
             }
         }
 
@@ -268,6 +284,12 @@
         vertexPositionBuffer.itemSize = 3;
         vertexPositionBuffer.numItems = vertexPositionData.length / 3;
 
+        vertexColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        vertexColorBuffer.itemSize = 4;
+        vertexColorBuffer.numItems = colors.length / 4;
+
         vertexIndexBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
@@ -276,6 +298,7 @@
 
         spherePosition.push(vertexPositionBuffer);
         sphereIndex.push(vertexIndexBuffer);
+        sphereColor.push(vertexColorBuffer);
     }
 
     function initCircle(radius) {
@@ -303,6 +326,7 @@
         circles.push(circleBuffer);
     }
 
+    var circleColorBuffer;
     function initBuffers() {
         var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
         for(var i=0; i<9; i++){
@@ -314,6 +338,20 @@
             initSphere(sizes[i]);
         }
 
+        var circleColors = [];
+        var numSegments = 100;
+        for(var i=0; i<numSegments; i++){
+            circleColors.push(1);
+            circleColors.push(1);
+            circleColors.push(1);
+            circleColors.push(1);
+        }
+
+        circleColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, circleColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circleColors), gl.STATIC_DRAW);
+        circleColorBuffer.itemSize = 4;
+        circleColorBuffer.numItems = circleColors.length / 4;
     }
 
     function degToRad(degrees) {
@@ -332,12 +370,16 @@
         mat4.translate(mvMatrix, [locations[i], 0.0, 0.0]);
         var vertexPositionBuffer = spherePosition[i];
         var vertexIndexBuffer = sphereIndex[i];
+        var vertexColorBuffer = sphereColor[i];
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
         setMatrixUniforms();
-        gl.drawElements(gl.TRIANGLE_STRIP, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.LINES, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         mvPopMatrix();
     }
 
@@ -346,6 +388,10 @@
         mvPushMatrix();
         gl.bindBuffer(gl.ARRAY_BUFFER, circleBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, circleBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, circleColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, circleColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
         setMatrixUniforms();
         gl.drawArrays(gl.LINE_STRIP, 0, circleBuffer.numItems);
         mvPopMatrix();
