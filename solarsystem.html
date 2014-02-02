@@ -163,21 +163,19 @@
     var spin = 0;
 
     function handleKeys() {
-        if (currentlyPressedKeys[33]) {
-            // Page Up
-            zoom -= 0.1;
-        }
-        if (currentlyPressedKeys[34]) {
-            // Page Down
-            zoom += 0.1;
-        }
         if (currentlyPressedKeys[38]) {
             // Up cursor key
             zoom += 0.1;
+            if(zoom>25){
+                zoom = 25;
+            }
         }
         if (currentlyPressedKeys[40]) {
             // Down cursor key
             zoom -= 0.1;
+            if(zoom<-25){
+                zoom = -25;
+            }
         }
     }
 
@@ -340,12 +338,12 @@
         var vertices = [];
         var colors = [];
         for(var i=0; i<400; i++){
-            vertices.push((Math.random()*40)-20);
-            vertices.push((Math.random()*40)-20);
-            vertices.push(-20);
-            colors.push(1);
-            colors.push(1);
-            colors.push(1);
+            vertices.push((Math.random()*60)-30);
+            vertices.push((Math.random()*60)-30);
+            vertices.push(-30);
+            colors.push(.3);
+            colors.push(.3);
+            colors.push(.3);
             colors.push(1);
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
@@ -373,9 +371,9 @@
         var circleColors = [];
         var numSegments = 100;
         for(var i=0; i<numSegments; i++){
-            circleColors.push(.1);
-            circleColors.push(.1);
-            circleColors.push(.1);
+            circleColors.push(.08);
+            circleColors.push(.08);
+            circleColors.push(.08);
             circleColors.push(1);
         }
 
@@ -467,6 +465,33 @@
         }
 
         drawStars();
+
+        mvPushMatrix();
+        mat4.rotate(mvMatrix, degToRad(90), [1,0,0]);
+        drawStars();
+        mvPopMatrix();
+
+        mvPushMatrix();
+        mat4.translate(mvMatrix, [0,-60,0]);
+        mat4.rotate(mvMatrix, degToRad(90), [1,0,0]);
+        drawStars();
+        mvPopMatrix();
+
+        mvPushMatrix();
+        mat4.rotate(mvMatrix, degToRad(90), [0,1,0]);
+        drawStars();
+        mvPopMatrix();
+
+        mvPushMatrix();
+        mat4.translate(mvMatrix, [60,0,0]);
+        mat4.rotate(mvMatrix, degToRad(90), [0,1,0]);
+        drawStars();
+        mvPopMatrix();
+
+        mvPushMatrix();
+        mat4.translate(mvMatrix, [0,0,60]);
+        drawStars();
+        mvPopMatrix();
     }
 
     var lastTime = 0;
