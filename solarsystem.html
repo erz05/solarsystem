@@ -224,14 +224,19 @@
     var sphereIndex = [];
     var sphereColor = [];
     var circles = [];
+    var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
+    var c1 = [1, .7, .3, 0, 1, 1, .5, 1, 0, 0];
+    var c2 = [1, .2, .5, .7, 0, 0.64705882352, 0, 0, 0, 1];
+    var c3 = [0, 0, .3, 1, 0, 0, .8, 1, 1, 1];
     
-    function initSphere(radius) {
+    function initSphere(i) {
         var vertexPositionBuffer;
         var vertexIndexBuffer;
         var vertexColorBuffer;
         
         var latitudeBands = 20;
         var longitudeBands = 20;
+        var radius = sizes[i];
 
         var vertexPositionData = [];
         var colors = [];
@@ -256,9 +261,9 @@
                 vertexPositionData.push(radius * y);
                 vertexPositionData.push(radius * z);
 
-                colors.push(1);
-                colors.push(0);
-                colors.push(0);
+                colors.push(c1[i]);
+                colors.push(c2[i]);
+                colors.push(c3[i]);
                 colors.push(1);
             }
         }
@@ -333,17 +338,16 @@
             initCircle(radiuses[i]);
         }
 
-        var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
         for(var i=0; i<10; i++){
-            initSphere(sizes[i]);
+            initSphere(i);
         }
 
         var circleColors = [];
         var numSegments = 100;
         for(var i=0; i<numSegments; i++){
-            circleColors.push(1);
-            circleColors.push(1);
-            circleColors.push(1);
+            circleColors.push(.1);
+            circleColors.push(.1);
+            circleColors.push(.1);
             circleColors.push(1);
         }
 
